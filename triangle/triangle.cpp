@@ -26,18 +26,18 @@ unsigned int compileShaders()
     std::string vertexSource = readShader("vertexShader.shader");
     std::string fragmentSource = readShader("fragmentShader.shader");
 
-    const char* vertexShaderSource = vertexSource.c_str();
-    const char* fragmentShaderSource = fragmentSource.c_str();
+    const char* vsrc = vertexSource.c_str();
+    const char* fsrc = fragmentSource.c_str();
 
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vsrc, NULL);
     glCompileShader(vertexShader);
 
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fsrc, NULL);
     glCompileShader(fragmentShader);
 
-    unsigned int shaderProgram = glCreateProgram();
+    GLuint shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
@@ -102,10 +102,12 @@ int main()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-    }       
+    }     
+
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
     glDeleteProgram(shaderProgram);
     glfwTerminate();
+    
     return 0;
 }

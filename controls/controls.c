@@ -18,6 +18,8 @@ char* readShader(const char* filename)
     char* buffer = (char*)malloc(size + 1);
     fread(buffer, 1, size, file);
     buffer[size] = '\0';
+
+    fclose(file);
     return buffer;
 }
 
@@ -59,7 +61,6 @@ unsigned int compileShaders()
 
 }  
 
-/* input-controlled value */
 float offsetX = 0.0f;
 float offsetY = 0.0f;
 

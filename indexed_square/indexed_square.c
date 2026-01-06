@@ -1,4 +1,3 @@
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -10,7 +9,7 @@ char* readShader(const char* filepath)
     FILE* file = fopen(filepath, "rb");
     if (!file)
     {
-        fprintf(stderr, "Could not open file %s\n", filepath);
+        printf("Failed to open shader: %s\n", filepath);
         return NULL;
     }
 
@@ -19,97 +18,101 @@ char* readShader(const char* filepath)
     rewind(file);
 
     char* buffer = (char*)malloc(size + 1);
-    if (!buffer)
-    {
-        fclose(file);
-        return NULL;
-    }
-
     fread(buffer, 1, size, file);
     buffer[size] = '\0';
-    
+
     fclose(file);
     return buffer;
 }
 
-unsigned int compileShaders(void)
+GLuint compileShaders(void)
 {
     char* vertexSource   = readShader("vertexShader.shader");
     char* fragmentSource = readShader("fragmentShader.shader");
 
     if (!vertexSource || !fragmentSource)
-    {
-        free(vertexSource);
-        free(fragmentSource);
-        return 0;
-    }
+        exit(EXIT_FAILURE);
 
-    const char* vsrc = vertexSource;
-    const char* fsrc = fragmentSource;
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, (const char**)&vertexSource, NULL);
+    glCompileShader(vs);
 
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vsrc, NULL);
-    glCompileShader(vertexShader);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, (const char**)&fragmentSource, NULL);
+    glCompileShader(fs);
 
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fsrc, NULL);
-    glCompileShader(fragmentShader);
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program);
 
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
 
     free(vertexSource);
     free(fragmentSource);
 
-    return shaderProgram;
+    return program;
 }
 
-int main()
+int main(void)
 {
-    glfwInit();
+    if (!glfwInit())
+        return -1;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "window", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Indexed Square (C)", NULL, NULL);
     if (!window)
     {
-        printf("failed to create window\n");
+        printf("GLFW failed to initialize\n");
+        glfwTerminate();
+        return -1;
     }
 
     glfwMakeContextCurrent(window);
-
+    
     if (glewInit() != GLEW_OK)
     {
-        printf("failed to initialize GLEW\n");
+        printf("GLEW failed to initialize\n");
+        return -1;
     }
 
     GLuint shaderProgram = compileShaders();
 
-    float vertices[] = 
+    float vertices[] =
     {
-        0.0f,  0.5f, 0.0f,
-       -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f
+        -0.5f,  0.5f, 0.0f,  // top-left
+         0.5f,  0.5f, 0.0f,  // top-right
+         0.5f, -0.5f, 0.0f,  // bottom-right
+        -0.5f, -0.5f, 0.0f   // bottom-left
     };
 
-    GLuint vao, vbo;
+    unsigned int indices[] =
+    {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+    GLuint vao, vbo, ibo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ibo);
 
     glBindVertexArray(vao);
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    glBindVertexArray(0);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -118,15 +121,17 @@ int main()
 
         glUseProgram(shaderProgram);
         glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-           
+
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ibo);
     glDeleteProgram(shaderProgram);
+
     glfwTerminate();
     return 0;
 }
