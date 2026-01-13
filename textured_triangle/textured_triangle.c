@@ -28,10 +28,14 @@ char* readShader(const char* filepath)
     return buffer;
 }
 
-GLuint compileShaders(void)
+GLuint compileShaders(const char* vertex, const char* fragment)
 {
-    char* vsrc = readShader("vertexShader.shader");
-    char* fsrc = readShader("fragmentShader.shader");
+    char* vertexSource   = readShader(vertex);
+    char* fragmentSource = readShader(fragment);
+
+    const char* vsrc = vertexSource;
+    const char* fsrc = vertexSource;
+    
 
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, (const char**)&vsrc, NULL);
@@ -69,7 +73,7 @@ int main(void)
 
     glewInit();
 
-    GLuint shaderProgram = compileShaders();
+    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
 
     float vertices[] = {
          // position         // color           // texcoord

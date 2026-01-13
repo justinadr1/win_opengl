@@ -1,4 +1,9 @@
+stb_image: 
 cl /MD /c /I"D:\opengl\Dependencies\GLEW\include" /I"D:\opengl\Dependencies\GLFW\include" /I"D:\opengl\Dependencies\stb_image" main.c
+
+glm: 
+cl /MD /c /I"D:\opengl\Dependencies\GLEW\include" /I"D:\opengl\Dependencies\GLFW\include" /I"D:\opengl\Dependencies\glm\include" main.c
+
 
 
 cl /c /I"D:\opengl\Dependencies\GLFW\include" /I"D:\opengl\Dependencies\GLEW\include" main.c

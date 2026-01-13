@@ -23,10 +23,10 @@ char* readShader(const char* filename)
     return buffer;
 }
 
-unsigned int compileShaders()
+GLuint compileShaders(const char* vertex, const char* fragment)
 {
-    char* vertexSource = readShader("vertexShader.shader");
-    char* fragmentSource = readShader("fragmentShader.shader");
+    char* vertexSource = readShader(vertex);
+    char* fragmentSource = readShader(fragment);
 
     if (!vertexSource || !fragmentSource)
     {
@@ -64,7 +64,8 @@ unsigned int compileShaders()
 float offsetX = 0.0f;
 float offsetY = 0.0f;
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window)
+{
     float speed = 0.0003f;
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -92,7 +93,7 @@ int main()
     glewExperimental = GL_TRUE;
     glewInit();
 
-    GLuint shaderProgram = compileShaders();
+    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
 
     float vertices[] = 
     {
@@ -116,7 +117,7 @@ int main()
      {
         processInput(window);
 
-        glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);

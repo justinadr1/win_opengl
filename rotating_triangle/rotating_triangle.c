@@ -25,10 +25,10 @@ char* readShader(const char* filename)
     return buffer;
 }
 
-unsigned int compileShaders()
+GLuint compileShaders(const char* vertex, const char* fragment)
 {
-    char* vertexSource = readShader("vertexShader.shader");
-    char* fragmentSource = readShader("fragmentShader.shader");
+    char* vertexSource   = readShader(vertex);
+    char* fragmentSource = readShader(fragment);
 
     if (!vertexSource || !fragmentSource)
     {
@@ -82,7 +82,7 @@ int main()
         return 1;
     }
 
-    unsigned int shaderProgram = compileShaders();
+    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
 
     float vertices[] =
     {
@@ -91,7 +91,7 @@ int main()
         0.5f, -0.5f, 0.0f 
     };
 
-    unsigned int vao, vbo;
+    GLuint vao, vbo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
@@ -135,7 +135,6 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
 
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);

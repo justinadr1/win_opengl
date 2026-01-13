@@ -32,10 +32,10 @@ char* readShader(const char* filepath)
     return buffer;
 }
 
-unsigned int compileShaders(void)
+GLuint compileShaders(const char* vertex, const char* fragment)
 {
-    char* vertexSource   = readShader("vertexShader.shader");
-    char* fragmentSource = readShader("fragmentShader.shader");
+    char* vertexSource   = readShader(vertex);
+    char* fragmentSource = readShader(fragment);
 
     if (!vertexSource || !fragmentSource)
     {
@@ -90,7 +90,7 @@ int main()
         printf("failed to initialize GLEW\n");
     }
 
-    GLuint shaderProgram = compileShaders();
+    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
 
     float vertices[] = 
     {
@@ -107,7 +107,7 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(vertices[0]), (void*)0);
     glEnableVertexAttribArray(0);
 
 

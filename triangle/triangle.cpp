@@ -3,28 +3,24 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <sstream>
+#include <string>
 
-std::string readShader(const std::string& filepath)
+std::string readShader(const std::string& path)
 {
-    std::ifstream file(filepath, std::ios::binary);
+    std::ifstream file(path, std::ios::in | std::ios::binary);
     if (!file)
-    {
-       throw std::runtime_error("could not open file " + filepath);
-    }
+        return "";
 
-    return std::string
-    (
-        std::istreambuf_iterator<char>(file),
-        std::istreambuf_iterator<char>()
-    );
+    std::ostringstream contents;
+    contents << file.rdbuf();
+    return contents.str();
 }
 
-unsigned int compileShaders()
+GLuint compileShaders(const std::string& vertex, const std::string& fragment)
 {
-    std::string vertexSource = readShader("vertexShader.shader");
-    std::string fragmentSource = readShader("fragmentShader.shader");
+    std::string vertexSource = readShader(vertex);
+    std::string fragmentSource = readShader(fragment);
 
     const char* vsrc = vertexSource.c_str();
     const char* fsrc = fragmentSource.c_str();
@@ -49,7 +45,6 @@ unsigned int compileShaders()
 
 }
 
-
 int main()
 {
     glfwInit();
@@ -61,25 +56,28 @@ int main()
     GLFWwindow* window = glfwCreateWindow(800, 600, "window", NULL, NULL);
     if (!window)
     {
-            std::cout << "failed to create window\n";
+        std::cout << "Failed to create window\n";
+        return -1;
     }
 
     glfwMakeContextCurrent(window);
 
     if (glewInit() != GLEW_OK)
     {
-            std::cout << "failed to initialize GLEW\n";
+        std::cout << "Failed to initialize GLEW\n";
+        return -1;
     }
-
-    unsigned int shaderProgram = compileShaders();
-
-    float vertices[] = {
-            0.0f,  0.5f, 0.0f,
-            -0.5f, -0.5f , 0.0f,
-            0.5f, -0.5f, 0.0f
+    
+    float vertices[] = 
+    {
+        0.0f,  0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f
     };
-
-    unsigned int vao, vbo;
+    
+    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
+    
+    GLuint vao, vbo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
@@ -87,9 +85,8 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(vertices[0]), (void*)0);
     glEnableVertexAttribArray(0);
-
 
     while (!glfwWindowShouldClose(window))
     {
