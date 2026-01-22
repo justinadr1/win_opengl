@@ -1,7 +1,7 @@
 cl /MD /c ^
  /I"D:\opengl\Dependencies\GLEW\include" ^
  /I"D:\opengl\Dependencies\GLFW\include" ^
- main.cpp
+ main.c
 
 
 link main.obj ^

@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
         write("rotating_triangle/vertexShader.glsl", ".");
         write("rotating_triangle/fragmentShader.glsl", ".");
     }
-    else if (strcmp(argv[1], "idx_squ") == 0)
+    else if (strcmp(argv[1], "idx_tri") == 0)
     {
         write("indexed_triangle/vertexShader.glsl", ".");
         write("indexed_triangle/fragmentShader.glsl", ".");

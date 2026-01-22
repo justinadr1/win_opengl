@@ -1,0 +1,7 @@
+
+
+cl /c main.c /I"D:\opengl\Dependencies\GLEW\include"
+
+
+
+link main.obj opengl32.lib user32.lib gdi32.lib kernel32.lib /SUBSYSTEM:WINDOWS /OUT:main.exe
