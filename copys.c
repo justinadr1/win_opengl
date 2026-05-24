@@ -94,7 +94,16 @@ int main(int argc, char* argv[])
         write("glm/vertexShader.glsl", ".");
         write("glm/fragmentShader.glsl", ".");
     }
-
+    else if (strcmp(argv[1], "con") == 0)
+    {
+        write("controls/vertexShader.glsl", ".");
+        write("controls/fragmentShader.glsl", ".");
+    }
+    else if (strcmp(argv[1], "cube") == 0)
+    {
+        write("cube/vertexShader.glsl", ".");
+        write("cube/fragmentShader.glsl", ".");
+    }
 
     return 0;
     

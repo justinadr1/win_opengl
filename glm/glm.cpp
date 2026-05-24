@@ -64,56 +64,48 @@ float w = .01f, s = 0.1f, a = .01f, d = 0.1f, q = 0.1f, e = 0.1f, c = 0.1f, v = 
 
 void processInput(GLFWwindow* window)
 {
-    const float moveSpeed = 0.0009f;
-    const float rotateSpeed = 0.0009f;
-    const float scaleSpeed = 0.0009f;
+    const float moveSpeed = 0.001f;
+    const float rotateSpeed = 0.001f;
+    const float scaleSpeed = 0.001f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         position.y += moveSpeed;
-        std::cout << w << ": W\n";
         w += .01f;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
         position.y -= moveSpeed;
-        std::cout << s << ": S\n";
         s += .01f;  
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
         position.x -= moveSpeed;
-        std::cout << a << ": A\n";
         a += .01f;  
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
         position.x += moveSpeed;
-        std::cout << d << ": D\n";
         d += .01f;  
     }
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         rotation += rotateSpeed;
-        std::cout << q << ": Q\n";
         q += .01f;
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
         rotation -= rotateSpeed;
-        std::cout << e << ": E\n";
         e += .01f;
     }
     if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
     {
         scale -= scaleSpeed;
-        std::cout << c << ": C\n";
         c += .01f;
     }
     if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
     {
         scale += scaleSpeed;
-        std::cout << v << ": V\n";
         v += .01f;
     }
 

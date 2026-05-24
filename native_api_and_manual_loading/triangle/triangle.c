@@ -14,7 +14,7 @@ typedef float GLfloat;
 typedef double GLdouble;
 typedef char GLchar;
 
-/* ================= OpenGL 3.x constants ================= */
+/* OpenGL 3.x constants */
 #define GL_VERTEX_SHADER            0x8B31
 #define GL_FRAGMENT_SHADER          0x8B30
 #define GL_ARRAY_BUFFER             0x8892
@@ -26,7 +26,7 @@ typedef char GLchar;
 
 
 
-/* ================= OpenGL function pointers ================= */
+/* OpenGL function pointers */
 
 /* WGL */
 typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC, HGLRC, const int*);
@@ -56,14 +56,14 @@ typedef void (APIENTRY* PFNGLDELETEVERTEXARRAYSPROC)(GLsizei, const GLuint*);
 
 /* Globals */
 static PFNGLCREATESHADERPROC            glCreateShader;
-static PFNGLSHADERSOURCEPROC           glShaderSource;
-static PFNGLCOMPILESHADERPROC          glCompileShader;
-static PFNGLCREATEPROGRAMPROC          glCreateProgram;
-static PFNGLATTACHSHADERPROC           glAttachShader;
-static PFNGLLINKPROGRAMPROC            glLinkProgram;
-static PFNGLUSEPROGRAMPROC             glUseProgram;
-static PFNGLDELETESHADERPROC           glDeleteShader;
-static PFNGLDELETEPROGRAMPROC          glDeleteProgram;
+static PFNGLSHADERSOURCEPROC            glShaderSource;
+static PFNGLCOMPILESHADERPROC           glCompileShader;
+static PFNGLCREATEPROGRAMPROC           glCreateProgram;
+static PFNGLATTACHSHADERPROC            glAttachShader;
+static PFNGLLINKPROGRAMPROC             glLinkProgram;
+static PFNGLUSEPROGRAMPROC              glUseProgram;
+static PFNGLDELETESHADERPROC            glDeleteShader;
+static PFNGLDELETEPROGRAMPROC           glDeleteProgram;
 
 static PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays;
 static PFNGLBINDVERTEXARRAYPROC         glBindVertexArray;
@@ -75,15 +75,15 @@ static PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 static PFNGLDELETEBUFFERSPROC           glDeleteBuffers;
 static PFNGLDELETEVERTEXARRAYSPROC      glDeleteVertexArrays;
 
-/* ================= Manual loader ================= */
+/* Manual loader  */
 void loadGLFunctions(void)
 {
 #define LOAD_GL(name) name = (void*)wglGetProcAddress(#name)
 
-    wglCreateContextAttribsARB =
-        (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
     LOAD_GL(glCreateShader);
+    // glCreateShader = (void*)wglGetProcAddresss("glCreateShader");
     LOAD_GL(glShaderSource);
     LOAD_GL(glCompileShader);
     LOAD_GL(glCreateProgram);
@@ -152,13 +152,13 @@ GLuint compileShaders(const char* vertex, const char* fragment)
     return p;
 }
 
-/* ================= Win32 globals ================= */
+/* Win32 globals */
 static HDC   g_hdc;
 static HGLRC g_glrc;
 static HWND  g_hwnd;
 static int   running = 1;
 
-/* ================= Win32 procedure ================= */
+/* Win32 procedure */
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (msg == WM_CLOSE || msg == WM_DESTROY)
@@ -170,7 +170,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-/* ================= OpenGL context ================= */
+/* OpenGL context */
 void createModernContext(HWND hwnd)
 {
     g_hdc = GetDC(hwnd);
@@ -208,7 +208,7 @@ void createModernContext(HWND hwnd)
     loadGLFunctions(); // load all modern OpenGL functions
 }
 
-/* ================= Entry point ================= */
+
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     AllocConsole();
@@ -222,9 +222,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, in
     RegisterClass(&wc);
 
     g_hwnd = CreateWindow("GLWindow", "Win32 OpenGL 3.3 Core (Manual Loader)",
-                          WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-                          CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
-                          NULL, NULL, hInst, NULL);
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
+        NULL, NULL, hInst, NULL);
 
     createModernContext(g_hwnd);
 
