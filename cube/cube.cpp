@@ -49,7 +49,7 @@ GLuint CompileShader(const std::string& vertex, const std::string& fragment)
 int main()
 {
     glfwInit();
-    GLFWwindow* window = glfwCreateWindow(800, 600, "3D Spinning Cube", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "game", NULL, NULL);
     glfwMakeContextCurrent(window);
     glewInit();
 

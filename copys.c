@@ -104,6 +104,11 @@ int main(int argc, char* argv[])
         write("cube/vertexShader.glsl", ".");
         write("cube/fragmentShader.glsl", ".");
     }
+    else if (strcmp(argv[1], "dino") == 0)
+    {
+        write("dino_game/vertexShader.glsl", ".");
+        write("dino_game/fragmentShader.glsl", ".");
+    }
 
     return 0;
     
