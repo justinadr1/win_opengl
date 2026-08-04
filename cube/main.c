@@ -1,38 +1,51 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <cglm/cglm.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
-std::string ReadShader(const std::string& shader)
+char* ReadShader(const char* filename)
 {
-    std::ifstream file(shader, std::ios::in | std::ios::binary);
-    std::ostringstream contents;
-    contents << file.rdbuf();
-    file.close();
-    return contents.str();
+    FILE* file = fopen(filename, "rb");
+    if (!file)
+    {
+        fprintf(stderr, "Failed to open shader file: %s\n", filename);
+        return NULL;
+    }
+
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char* buffer = (char*)malloc(length + 1);
+    if (!buffer)
+    {
+        fclose(file);
+        fprintf(stderr, "Memory allocation failed for: %s\n", filename);
+        return NULL;
+    }
+
+    size_t read_length = fread(buffer, 1, length, file);
+    buffer[read_length] = '\0';
+
+    fclose(file);
+    return buffer;
 }
 
-GLuint CompileShader(const std::string& vertex, const std::string& fragment)
+GLuint CompileShader(const char* vertex, const char* fragment)
 {
-    std::string vertexSource = ReadShader(vertex);
-    std::string fragmentSource = ReadShader(fragment);
+    char* vertexSource = ReadShader(vertex);
+    char* fragmentSource = ReadShader(fragment);
 
-    const char* vsrc = vertexSource.c_str();
-    const char* fsrc = fragmentSource.c_str();
+    if (!vertexSource || !fragmentSource) return 0;
 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vsrc, NULL);
+    glShaderSource(vertexShader, 1, (const char**)&vertexSource, NULL);
     glCompileShader(vertexShader);
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fsrc, NULL);
+    glShaderSource(fragmentShader, 1, (const char**)&fragmentSource, NULL);
     glCompileShader(fragmentShader);
 
     GLuint program = glCreateProgram();
@@ -43,15 +56,35 @@ GLuint CompileShader(const std::string& vertex, const std::string& fragment)
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    free(vertexSource);
+    free(fragmentSource);
+
     return program;
 }
 
-int main()
+int main(void)
 {
-    glfwInit();
+    if (!glfwInit())
+    {
+        fprintf(stderr, "Failed to initialize GLFW\n");
+        return -1;
+    }
+
     GLFWwindow* window = glfwCreateWindow(800, 600, "game", NULL, NULL);
+    if (!window)
+    {
+        fprintf(stderr, "Failed to create window\n");
+        glfwTerminate();
+        return -1;
+    }
+
     glfwMakeContextCurrent(window);
-    glewInit();
+
+    if (glewInit() != GLEW_OK)
+    {
+        fprintf(stderr, "Failed to initialize GLEW\n");
+        return -1;
+    }
 
     glEnable(GL_DEPTH_TEST);
 
@@ -124,6 +157,10 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    int modelLoc = glGetUniformLocation(shaderProgram, "model");
+    int viewLoc = glGetUniformLocation(shaderProgram, "view");
+    int projLoc = glGetUniformLocation(shaderProgram, "projection");
+
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -131,26 +168,25 @@ int main()
 
         glUseProgram(shaderProgram);
 
-        // Model: rotate the cube over time
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+        // 1. Model: rotate the cube over time
+        mat4 model;
+        glm_mat4_identity(model);
+        glm_rotate(model, (float)glfwGetTime(), (vec3){0.5f, 1.0f, 0.0f});
 
-        // View: move the camera back 3 units along the z axis
-        glm::mat4 view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        // 2. View: move the camera back 3 units along the z axis
+        mat4 view;
+        glm_mat4_identity(view);
+        glm_translate(view, (vec3){0.0f, 0.0f, -3.0f});
 
-        // Projection: create perspective (45 degree fov)
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        // 3. Projection: create perspective (45 degree fov)
+        mat4 projection;
+        glm_perspective(glm_rad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f, projection);
 
-        // Pass the matrices to the shader
-        int modelLoc = glGetUniformLocation(shaderProgram, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-        int viewLoc = glGetUniformLocation(shaderProgram, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-        int projLoc = glGetUniformLocation(shaderProgram, "projection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        // Pass the matrices to the shader. In cglm, mat4 is just a typedef for float[4][4],
+        // so casting it to (float*) is perfectly safe and equivalent to glm::value_ptr()
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, (float*)model);
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, (float*)view);
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, (float*)projection);
 
         glBindVertexArray(vao);
         // Draw 36 vertices instead of 3
@@ -164,4 +200,6 @@ int main()
     glDeleteBuffers(1, &vbo);
     glDeleteProgram(shaderProgram);
     glfwTerminate();
+    
+    return 0;
 }

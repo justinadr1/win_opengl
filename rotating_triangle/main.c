@@ -7,64 +7,58 @@
 #include <math.h>
 #include <time.h>
 
-char* readShader(const char* filename)
-{
-    FILE* file = fopen(filename, "rb");
+char* read_file(const char* filepath) {
+    FILE* file = fopen(filepath, "rb");
+    if (!file) {
+        fprintf(stderr, "Could not open file %s\n", filepath);
+        return NULL;
+    }
 
     fseek(file, 0, SEEK_END);
-    int size = ftell(file);     
-    
+    int len = ftell(file);
     rewind(file);
-    
-    char* buffer = (char*)malloc(size + 1); 
-    fread(buffer, 1, size, file);
-    buffer[size] = '\0';
+
+    char* buffer = (char*)malloc(len + 1);
+    if (!buffer) {
+        fclose(file);
+        return NULL;
+    }
+
+    fread(buffer, 1, len, file);
+    buffer[len] = '\0';
     
     fclose(file);
-    
     return buffer;
 }
 
-GLuint compileShaders(const char* vertex, const char* fragment)
-{
-    char* vertexSource   = readShader(vertex);
-    char* fragmentSource = readShader(fragment);
+GLuint compile_shader(char* source, GLenum type) {
+    char* src = read_file(source);
 
-    if (!vertexSource || !fragmentSource)
-    {
-        free(vertexSource);
-        free(fragmentSource);
-        return -1;
-    }
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &src, NULL);
+    glCompileShader(shader);
 
-    const char* vsrc = vertexSource;
-    const char* fsrc = fragmentSource;
+    free(src);
 
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1,  &vsrc, NULL);
-    glCompileShader(vertexShader);
-    
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fsrc, NULL);
-    glCompileShader(fragmentShader);
+    return shader;    
+}
 
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+GLuint compile_program(char* vertexSource, char* fragmentSource) {
+    GLuint vertexShader = compile_shader(vertexSource, GL_VERTEX_SHADER);
+    GLuint fragmentShader = compile_shader(fragmentSource, GL_FRAGMENT_SHADER);
+ 
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    free(vertexSource);
-    free(fragmentSource);
-
-    return shaderProgram;
+    return program;
 }
 
-
-int main()
-{
+int main() {
     glfwInit();
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "window", NULL, NULL);
@@ -76,16 +70,14 @@ int main()
 
     glfwMakeContextCurrent(window);
 
-    if (glewInit() != GLEW_OK)
-    {
+    if (glewInit() != GLEW_OK) {
         printf("failed to initialize glew\n");
         return 1;
     }
 
-    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
+    GLuint program = compile_program("vertexShader.glsl", "fragmentShader.glsl");
 
-    float vertices[] =
-    {
+    float vertices[] = {
         0.0f,  0.5f, 0.0f,
        -0.5f, -0.5f, 0.0f,
         0.5f, -0.5f, 0.0f 
@@ -103,8 +95,7 @@ int main()
     glEnableVertexAttribArray(0);
 
 
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -124,8 +115,8 @@ int main()
         };
 
         // Pass matrix to shader
-        int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-        glUseProgram(shaderProgram);
+        int transformLoc = glGetUniformLocation(program, "transform");
+        glUseProgram(program);
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform);
 
         // Draw triangle
@@ -138,6 +129,6 @@ int main()
 
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
-    glDeleteProgram(shaderProgram);
+    glDeleteProgram(program);
     glfwTerminate();
 }

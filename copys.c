@@ -99,22 +99,25 @@ int main(int argc, char* argv[])
     {
         write("glm/vertexShader.glsl", ".");
         write("glm/fragmentShader.glsl", ".");
+        write("glm/main.c", ".");
     }
     else if (strcmp(argv[1], "con") == 0)
     {
         write("controls/vertexShader.glsl", ".");
         write("controls/fragmentShader.glsl", ".");
-
+        write("controls/main.c", ".");
     }
     else if (strcmp(argv[1], "cube") == 0)
     {
         write("cube/vertexShader.glsl", ".");
         write("cube/fragmentShader.glsl", ".");
+        write("cube/main.c", ".");
     }
     else if (strcmp(argv[1], "dino") == 0)
     {
         write("dino_game/vertexShader.glsl", ".");
         write("dino_game/fragmentShader.glsl", ".");
+        write("dino_game/main.c", ".");
     }
 
     return 0;

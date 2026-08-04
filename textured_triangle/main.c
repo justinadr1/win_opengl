@@ -7,60 +7,58 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-char* readShader(const char* filepath)
-{
+char* read_file(const char* filepath) {
     FILE* file = fopen(filepath, "rb");
-    if (!file)
-    {
-        fprintf(stderr, "Could not open %s\n", filepath);
+    if (!file) {
+        fprintf(stderr, "Could not open file %s\n", filepath);
         return NULL;
     }
 
     fseek(file, 0, SEEK_END);
-    long size = ftell(file);
+    int len = ftell(file);
     rewind(file);
 
-    char* buffer = malloc(size + 1);
-    fread(buffer, 1, size, file);
-    buffer[size] = '\0';
+    char* buffer = (char*)malloc(len + 1);
+    if (!buffer) {
+        fclose(file);
+        return NULL;
+    }
 
+    fread(buffer, 1, len, file);
+    buffer[len] = '\0';
+    
     fclose(file);
     return buffer;
 }
 
-GLuint compileShaders(const char* vertex, const char* fragment)
-{
-    char* vertexSource   = readShader(vertex);
-    char* fragmentSource = readShader(fragment);
+GLuint compile_shader(char* source, GLenum type) {
+    char* src = read_file(source);
 
-    const char* vsrc = vertexSource;
-    const char* fsrc = fragmentSource;
-    
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, (const char**)&vsrc, NULL);
-    glCompileShader(vs);
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &src, NULL);
+    glCompileShader(shader);
 
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, (const char**)&fsrc, NULL);
-    glCompileShader(fs);
+    free(src);
 
+    return shader;    
+}
+
+GLuint compile_program(char* vertexSource, char* fragmentSource) {
+    GLuint vertexShader = compile_shader(vertexSource, GL_VERTEX_SHADER);
+    GLuint fragmentShader = compile_shader(fragmentSource, GL_FRAGMENT_SHADER);
+ 
     GLuint program = glCreateProgram();
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
     glLinkProgram(program);
 
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    free(vsrc);
-    free(fsrc);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 
     return program;
 }
 
-
-int main(void)
-{
+int main(void) {
     glfwInit();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -72,7 +70,7 @@ int main(void)
 
     glewInit();
 
-    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
+    GLuint program = compile_program("vertexShader.glsl", "fragmentShader.glsl");
 
     float vertices[] = {
          // position         // color           // texcoord
@@ -120,12 +118,11 @@ int main(void)
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        glUseProgram(program);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);

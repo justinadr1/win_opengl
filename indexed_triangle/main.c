@@ -1,44 +1,50 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-std::string readShader(const std::string& filepath)
-{
-    std::ifstream file(filepath, std::ios::binary);
-    if (!file)
-    {
-        std::cerr << "Could not open " << filepath << std::endl;
-        return "";
+char* read_file(const char* filepath) {
+    FILE* file = fopen(filepath, "rb");
+    if (!file) {
+        fprintf(stderr, "Could not open file %s\n", filepath);
+        return NULL;
     }
 
-    std::ostringstream content;
-    content << file.rdbuf();
-    return content.str();
+    fseek(file, 0, SEEK_END);
+    int len = ftell(file);
+    rewind(file);
+
+    char* buffer = (char*)malloc(len + 1);
+    if (!buffer) {
+        fclose(file);
+        return NULL;
+    }
+
+    fread(buffer, 1, len, file);
+    buffer[len] = '\0';
+    
+    fclose(file);
+    return buffer;
 }
 
-GLuint compileShaders(const std::string& vertex, const std::string& fragment)
-{
-    std::string vertexSource = readShader(vertex);
-    std::string fragmentSource = readShader(fragment    );
+GLuint compile_shader(char* source, GLenum type) {
+    char* src = read_file(source);
 
-    if (vertexSource.empty() || fragmentSource.empty())
-        return 0;
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &src, NULL);
+    glCompileShader(shader);
 
-    const char* vsrc = vertexSource.c_str();
-    const char* fsrc = fragmentSource.c_str();
+    free(src);
 
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vsrc, nullptr);
-    glCompileShader(vertexShader);
+    return shader;    
+}
 
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fsrc, nullptr);
-    glCompileShader(fragmentShader);
-
+GLuint compile_program(char* vertexSource, char* fragmentSource) {
+    GLuint vertexShader = compile_shader(vertexSource, GL_VERTEX_SHADER);
+    GLuint fragmentShader = compile_shader(fragmentSource, GL_FRAGMENT_SHADER);
+ 
     GLuint program = glCreateProgram();
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
@@ -50,8 +56,7 @@ GLuint compileShaders(const std::string& vertex, const std::string& fragment)
     return program;
 }
 
-int main()
-{
+int main() {
     if (!glfwInit())
         return -1;
 
@@ -59,19 +64,17 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(750, 750, "Index Buffers", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(750, 750, "Index Buffers", NULL, NULL);
 
-    if (!window)
-    {
+    if (!window) {
         glfwTerminate();
         return -1;
     }
 
     glfwMakeContextCurrent(window);
 
-    if (glewInit() != GLEW_OK)
-    {
-        std::cerr << "Failed to initialize GLEW\n";
+    if (glewInit() != GLEW_OK) {
+        printf("Failed to initialize GLEW\n");
         return -1;
     }
     
@@ -88,7 +91,7 @@ int main()
         1, 2, 3   // second triangle
     };
     
-    GLuint shaderProgram = compileShaders("vertexShader.glsl", "fragmentShader.glsl");
+    GLuint program = compile_program("vertexShader.glsl", "fragmentShader.glsl");
     
     GLuint vao, vbo, ibo;
     glGenVertexArrays(1, &vao);
@@ -111,13 +114,11 @@ int main()
 
     glBindVertexArray(0);
 
-    while (!glfwWindowShouldClose(window))
-    {
-
+    while (!glfwWindowShouldClose(window)) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);        
+        glUseProgram(program);        
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -125,7 +126,7 @@ int main()
         glfwPollEvents();
     }
 
-    glDeleteProgram(shaderProgram);
+    glDeleteProgram(program);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &ibo);

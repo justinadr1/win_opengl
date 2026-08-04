@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char* readShader(const char* filepath) {
+char* read_file(const char* filepath) {
     FILE* file = fopen(filepath, "rb");
     if (!file) {
         fprintf(stderr, "Could not open file %s\n", filepath);
