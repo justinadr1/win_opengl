@@ -73,21 +73,27 @@ int main(int argc, char* argv[])
     {
         write("triangle/vertexShader.glsl", ".");
         write("triangle/fragmentShader.glsl", ".");
+        write("triangle/main.c", ".");
     }
     else if (strcmp(argv[1], "tex_tri") == 0)
     {
         write("textured_triangle/vertexShader.glsl", ".");
         write("textured_triangle/fragmentShader.glsl", ".");
+        write("textured_triangle/main.c", ".");
+    
     }
     else if (strcmp(argv[1], "rot_tri") == 0)
     {
         write("rotating_triangle/vertexShader.glsl", ".");
         write("rotating_triangle/fragmentShader.glsl", ".");
+        write("rotating_triangle/main.c", ".");
     }
     else if (strcmp(argv[1], "idx_tri") == 0)
     {
         write("indexed_triangle/vertexShader.glsl", ".");
         write("indexed_triangle/fragmentShader.glsl", ".");
+        write("indexed_triangle/main.c", ".");
+    
     }
     else if (strcmp(argv[1], "glm") == 0)
     {
@@ -98,6 +104,7 @@ int main(int argc, char* argv[])
     {
         write("controls/vertexShader.glsl", ".");
         write("controls/fragmentShader.glsl", ".");
+
     }
     else if (strcmp(argv[1], "cube") == 0)
     {
